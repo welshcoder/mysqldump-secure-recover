@@ -2,13 +2,15 @@
 #
 # mysqldump-secure-recover
 #
+# Version: 0.1
+#
 # A script to recover a file saved with mysqldump-secure back to raw SQL data
 # file. Deals with encryption and compression.
 #
 # mysqldump-secure available from https://mysqldump-secure.org/
 #
 # Script written by welshcoder (c) 2019
-# Published under GPLv3
+# Published under GNU GPLv3
 #
 
 INFILE=""
@@ -110,6 +112,11 @@ case $compression in
 	;;
 esac
 
+if [ ! -z "$COMP_CMD" ]
+then
+    COMP_CMD="| $COMP_CMD";
+fi
+
 # Decrypt the file if necessary.
 if [ "X$extension1" = "Xenc" ]
 then
@@ -119,7 +126,7 @@ else
 fi
 
 # Run the commands to decrypt and decompress the SQL file.
-eval "$DEC_CMD | $COMP_CMD >$OUTFILE"
+eval "$DEC_CMD $COMP_CMD >$OUTFILE"
 
 # And we're done!
 exit 0;
