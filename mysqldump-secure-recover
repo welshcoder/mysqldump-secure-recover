@@ -1,0 +1,125 @@
+#!/bin/sh
+#
+# mysqldump-secure-recover
+#
+# A script to recover a file saved with mysqldump-secure back to raw SQL data
+# file. Deals with encryption and compression.
+#
+# mysqldump-secure available from https://mysqldump-secure.org/
+#
+# Script written by welshcoder (c) 2019
+# Published under GPLv3
+#
+
+INFILE=""
+OUTFILE="&1" # Default to stdout
+KEYFILE=""
+
+usage()
+{
+    echo "Usage: $0 [-h|--help] --in=<file> [--key=<keyfile>] [--out=<file>]"
+    echo;
+    echo "A script to recover a file saved with mysqldump-secure back to raw SQL data";
+    echo "file. Automatically detects the composition of the file from the filename.";
+    echo;
+    echo "  --in=<file> is the file created by mysqldump-secure to recover.";
+    echo "  --key=<keyfile> is the private key file to decrypt the file.";
+    echo "  --out=<file> is the file to output to. Defaults to stdout if not set.";
+    echo "  -h|--help shows this message.";
+}
+
+while [ "$1" != "" ]; do
+    PARAM=`echo $1 | awk -F= '{print $1}'`
+    VALUE=`echo $1 | awk -F= '{print $2}'`
+    case $PARAM in
+        -h | --help)
+            usage
+            exit
+            ;;
+        --in)
+            INFILE=$VALUE
+            ;;
+        --out)
+            OUTFILE=$VALUE
+            ;;
+	--key)
+	    KEYFILE=$VALUE
+	    ;;
+        *)
+            echo "ERROR: unknown parameter \"$PARAM\""
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+if [ ! -e $INFILE ] || [ "$INFILE" = "" ]
+then
+    echo "ERROR: Input file does not exist.";
+    exit 1;
+fi
+
+# Get file composition from the filename
+extension1=`echo $INFILE | awk -F '.' '{print $ (NF)}' | tr [A-Z] [a-z]`
+if [ "X$extension1" != "Xsql" ]
+then
+    extension2=`echo $INFILE | awk -F '.' '{print $ (NF-1)}' | tr [A-Z] [a-z]`
+else
+    echo "File is already recovered.";
+    exit 0;
+fi
+
+# Check to see if we need the decryption key (only if the file is encrypted).
+if [ ! -e $KEYFILE ] && [ "X$extension1" = "Xenc" ]
+then
+    echo "File is encrypted and no key file has been given.";
+    exit 1;
+fi
+
+# Now check to see if compression has been used
+if [ "X$extension2" != "Xsql" ]
+then
+    compression=$extension2;
+else
+    if [ "X$extension1" != "Xenc" ]
+    then
+	compression=$extension1;
+    fi
+    compression="";
+fi
+
+# Deterime the decompression command
+case $compression in
+    gz)
+	COMP_CMD="gunzip -c";
+	;;
+    bz2)
+	COMP_CMD="bunzip2 -c";
+	;;
+    xz)
+	COMP_CMD="xz --decompress -c";
+	;;
+    lzma)
+	$COMP_CMD="unlzma -c";
+	;;
+    lzo)
+	COMP_CMD="lzop -d -c";
+	;;
+    *)
+	COMP_CMD="";
+	;;
+esac
+
+# Decrypt the file if necessary.
+if [ "X$extension1" = "Xenc" ]
+then
+    DEC_CMD="openssl smime -decrypt -in $INFILE -inform DER -inkey $KEYFILE";
+else
+    DEC_CMD="cat `$INFILE`";
+fi
+
+# Run the commands to decrypt and decompress the SQL file.
+eval "$DEC_CMD | $COMP_CMD >$OUTFILE"
+
+# And we're done!
+exit 0;
