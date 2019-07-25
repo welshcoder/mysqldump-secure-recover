@@ -2,7 +2,7 @@
 Small shell script to assist with the decryption and decompression of files created with mysqldump-secure.
 
 ## Requirements
-Should be pretty portable for other systems that can run `sh` shell scripts. `openssl` is required if decryption is required. 
+Should be pretty portable for other systems that can run `sh` shell scripts. `openssl` is required if decryption is required, and the relevant (de)compression software should be installed if that is needed.
 
 ## Usage
 
