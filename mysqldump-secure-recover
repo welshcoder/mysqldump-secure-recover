@@ -2,7 +2,7 @@
 #
 # mysqldump-secure-recover
 #
-# Version: 0.1
+# Version: 0.1.1
 #
 # A script to recover a file saved with mysqldump-secure back to raw SQL data
 # file. Deals with encryption and compression.
@@ -11,6 +11,11 @@
 #
 # Script written by welshcoder (c) 2019
 # Published under GNU GPLv3
+#
+# Revision History
+#
+# v0.1.1 - Fixed the non-encrypted decompression issue, added revision history
+# v0.1   - Initial release
 #
 
 INFILE=""
