@@ -86,8 +86,9 @@ else
     if [ "X$extension1" != "Xenc" ]
     then
 	compression=$extension1;
+    else
+    	compression="";
     fi
-    compression="";
 fi
 
 # Deterime the decompression command
@@ -122,7 +123,7 @@ if [ "X$extension1" = "Xenc" ]
 then
     DEC_CMD="openssl smime -decrypt -in $INFILE -inform DER -inkey $KEYFILE";
 else
-    DEC_CMD="cat `$INFILE`";
+    DEC_CMD="cat $INFILE";
 fi
 
 # Run the commands to decrypt and decompress the SQL file.
