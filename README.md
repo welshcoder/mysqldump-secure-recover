@@ -1,5 +1,5 @@
 # mysqldump-secure-recover
-Small shell script to assist with the decryption and decompression of files created with mysqldump-secure.
+Small shell script to assist with the decryption and decompression of files created with mysqldump-secure (https://mysqldump-secure.org/).
 
 ## Requirements
 Should be pretty portable for other systems that can run `sh` shell scripts. `openssl` is required if decryption is required, and the relevant (de)compression software should be installed if that is needed.
